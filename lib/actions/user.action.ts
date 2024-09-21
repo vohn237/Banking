@@ -1,6 +1,6 @@
 'use server';
 
-import { ID } from 'node-appwrite';
+import { ID, Query } from 'node-appwrite';
 import { createAdminClient, createSessionClient } from '../appwrite';
 import { cookies } from 'next/headers';
 import { encryptId, extractCustomerIdFromUrl, parseStringify } from '../utils';
@@ -20,6 +20,22 @@ const {
   APPWRITE_BANK_COLLECTION_ID: BANK_COLLECTION_ID,
 } = process.env;
 
+export const getUserInfo = async ({ userId }: getUserInfoProps) => {
+  try {
+    const { database } = await createAdminClient();
+
+    const user = await database.listDocuments(
+      DATABASE_ID!,
+      USER_COLLECTION_ID!,
+      [Query.equal('userId', [userId])]
+    );
+
+    return parseStringify(user.documents[0]);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const signIn = async ({ email, password }: signInProps) => {
   try {
     // Mutation / Database / Make fetch
@@ -37,7 +53,6 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
   let newUserAccount;
 
   try {
-    // Create a user account
     const { account, database } = await createAdminClient();
 
     newUserAccount = await account.create(
@@ -46,6 +61,7 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
       password,
       `${firstName} ${lastName}`
     );
+
     if (!newUserAccount) throw new Error('Error creating user');
 
     const dwollaCustomerUrl = await createDwollaCustomer({
@@ -83,15 +99,18 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
     console.error('Error', error);
   }
 };
-
 // ... your initilization functions
 
 export async function getLoggedInUser() {
   try {
     const { account } = await createSessionClient();
+    const result = await account.get();
 
-    return await account.get();
+    const user = await getUserInfo({ userId: result.$id });
+
+    return parseStringify(user);
   } catch (error) {
+    console.log(error);
     return null;
   }
 }
@@ -101,8 +120,8 @@ export const logoutAccount = async () => {
   try {
     const { account } = await createSessionClient();
 
-    await account.deleteSession('current');
     cookies().delete('appwrite-session');
+    await account.deleteSession('current');
   } catch (error) {
     return null;
   }
