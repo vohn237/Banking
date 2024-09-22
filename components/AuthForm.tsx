@@ -20,7 +20,6 @@ import { Input } from '@/components/ui/input';
 import CustomInput from './CustomInput';
 import { authFormSchema } from '@/lib/utils';
 import { Loader2 } from 'lucide-react';
-import SignUp from '@/app/(auth)/sign-up/page';
 import { useRouter } from 'next/navigation';
 import { signIn, signUp } from '@/lib/actions/user.action';
 import PlaidLink from './PlaidLink';
@@ -98,13 +97,14 @@ const AuthForm = ({ type }: { type: string }) => {
             Horizon
           </h1>
         </Link>
+
         <div className="flex flex-col gap-1 md:gap-3">
           <h1 className="text-24 lg:text-36 font-semibold text-gray-900">
-            {user ? 'Link Account' : type === 'sign-in' ? 'Sign in' : 'Sign up'}
+            {user ? 'Link Account' : type === 'sign-in' ? 'Sign In' : 'Sign Up'}
             <p className="text-16 font-normal text-gray-600">
               {user
-                ? 'Link your account to continue'
-                : 'Enter your details to get started'}
+                ? 'Link your account to get started'
+                : 'Please enter your details'}
             </p>
           </h1>
         </div>
@@ -182,6 +182,7 @@ const AuthForm = ({ type }: { type: string }) => {
                 label="Email"
                 placeholder="Enter your email"
               />
+
               <CustomInput
                 control={form.control}
                 name="password"
@@ -190,23 +191,24 @@ const AuthForm = ({ type }: { type: string }) => {
               />
 
               <div className="flex flex-col gap-4">
-                <Button type="submit" className="form-btn" disabled={isLoading}>
+                <Button type="submit" disabled={isLoading} className="form-btn">
                   {isLoading ? (
                     <>
                       <Loader2 size={20} className="animate-spin" /> &nbsp;
                       Loading...
                     </>
                   ) : type === 'sign-in' ? (
-                    'Sign in'
+                    'Sign In'
                   ) : (
-                    'Sign up'
+                    'Sign Up'
                   )}
                 </Button>
               </div>
             </form>
           </Form>
+
           <footer className="flex justify-center gap-1">
-            <p className=" text-14 font-normal text-gray-600">
+            <p className="text-14 font-normal text-gray-600">
               {type === 'sign-in'
                 ? "Don't have an account?"
                 : 'Already have an account?'}

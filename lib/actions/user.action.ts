@@ -138,11 +138,12 @@ export const createLinkToken = async (user: User) => {
       language: 'en',
       country_codes: ['US'] as CountryCode[],
     };
+
     const response = await plaidClient.linkTokenCreate(tokenParams);
 
     return parseStringify({ linkToken: response.data.link_token });
   } catch (error) {
-    return null;
+    console.log(error);
   }
 };
 
