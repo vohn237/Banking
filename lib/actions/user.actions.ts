@@ -10,7 +10,8 @@ import {
   ProcessorTokenCreateRequestProcessorEnum,
   Products,
 } from 'plaid';
-import { plaidClient } from '../plaid';
+
+import { plaidClient } from '@/lib/plaid';
 import { revalidatePath } from 'next/cache';
 import { addFundingSource, createDwollaCustomer } from './dwolla.actions';
 
@@ -38,15 +39,24 @@ export const getUserInfo = async ({ userId }: getUserInfoProps) => {
 
 export const signIn = async ({ email, password }: signInProps) => {
   try {
-    // Mutation / Database / Make fetch
     const { account } = await createAdminClient();
+    const session = await account.createEmailPasswordSession(email, password);
 
-    const response = await account.createEmailPasswordSession(email, password);
-    return parseStringify(response);
+    cookies().set('appwrite-session', session.secret, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'strict',
+      secure: true,
+    });
+
+    const user = await getUserInfo({ userId: session.userId });
+
+    return parseStringify(user);
   } catch (error) {
     console.error('Error', error);
   }
 };
+
 export const signUp = async ({ password, ...userData }: SignUpParams) => {
   const { email, firstName, lastName } = userData;
 
@@ -99,7 +109,6 @@ export const signUp = async ({ password, ...userData }: SignUpParams) => {
     console.error('Error', error);
   }
 };
-// ... your initilization functions
 
 export async function getLoggedInUser() {
   try {
@@ -115,12 +124,12 @@ export async function getLoggedInUser() {
   }
 }
 
-//logging out
 export const logoutAccount = async () => {
   try {
     const { account } = await createSessionClient();
 
     cookies().delete('appwrite-session');
+
     await account.deleteSession('current');
   } catch (error) {
     return null;
@@ -260,6 +269,7 @@ export const getBanks = async ({ userId }: getBanksProps) => {
 
 export const getBank = async ({ documentId }: getBankProps) => {
   try {
+    console.log('documentId', documentId);
     const { database } = await createAdminClient();
 
     const bank = await database.listDocuments(
