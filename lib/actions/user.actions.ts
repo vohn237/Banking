@@ -269,7 +269,6 @@ export const getBanks = async ({ userId }: getBanksProps) => {
 
 export const getBank = async ({ documentId }: getBankProps) => {
   try {
-    console.log('documentId', documentId);
     const { database } = await createAdminClient();
 
     const bank = await database.listDocuments(
